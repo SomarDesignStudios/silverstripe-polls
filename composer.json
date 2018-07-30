@@ -1,7 +1,7 @@
 {
 	"name": "mateusz/silverstripe-polls",
 	"description": "Poll module for SilverStripe",
-	"type": "silverstripe-module",
+	"type": "silverstripe-vendormodule",
 	"keywords": ["silverstripe", "polls", "forms"],
 	"license": "BSD-3-Clause",
 	"authors": [
