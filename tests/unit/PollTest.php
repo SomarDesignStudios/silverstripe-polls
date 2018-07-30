@@ -41,13 +41,13 @@ class PollTest extends SapphireTest {
 		$mobilePoll->Expiry = "2010-10-11 10:10:10";
 		$mobilePoll->write();
 
-		SS_Datetime::set_mock_now('2010-10-10 10:00:00');
+		DBDatetime::set_mock_now('2010-10-10 10:00:00');
 		$this->assertFalse($mobilePoll->getVisible());
 
-		SS_Datetime::set_mock_now('2010-10-10 11:00:00');
+		DBDatetime::set_mock_now('2010-10-10 11:00:00');
 		$this->assertTrue($mobilePoll->getVisible());
 
-		SS_Datetime::set_mock_now('2010-10-12 10:00:00');
+		DBDatetime::set_mock_now('2010-10-12 10:00:00');
 		$this->assertFalse($mobilePoll->getVisible());
 	}
 

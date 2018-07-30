@@ -8,7 +8,7 @@ A fork of [silverstripe-polls](https://github.com/mateusz/silverstripe-polls)
 
 ## Requirements 
 
-master: SilverStripe 3.2.x
+master: SilverStripe 4.x
 
 ## Installation 
 
@@ -39,7 +39,7 @@ Here is the most basic example of how to associate one Poll with each Page:
 
     class Page extends SiteTree {
     	static $has_one = array(
-    		'Poll' => 'Poll'
+    		'Poll' => Poll::class
     	);
     
     	...

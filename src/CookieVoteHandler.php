@@ -1,5 +1,9 @@
 <?php
 
+namespace Mateusz\Polls;
+
+use SilverStripe\Control\Cookie;
+
 /**
  * Default vote handler.
  *

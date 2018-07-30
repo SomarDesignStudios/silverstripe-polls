@@ -1,4 +1,7 @@
 <?php
+
+namespace Mateusz\Polls;
+
 /**
  * A base class to allow hooking into the polling functionality
  *

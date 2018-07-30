@@ -1,10 +1,18 @@
 <?php
+
+namespace Mateusz\Polls;
+
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Security\Permission;
+
 /**
  * This represents a choice that belongs to a {@link Poll}
  * 
  * @package polls
  */
 class PollChoice extends DataObject {
+	
+	private static $table_name = 'PollChoice';
 	
 	private static $db = array(
 		'Title' => 'Varchar(255)',
@@ -13,19 +21,19 @@ class PollChoice extends DataObject {
 	);
 	
 	private static $has_one = array(
-		'Poll' => 'Poll'
+		'Poll' => Poll::class
 	);
 	
-	static $searchable_fields = array(
+	private static $searchable_fields = array(
 		'Title'
 	);
 
-	static $summary_fields = array(
+	private static $summary_fields = array(
 		'Title',
 		'Votes'
 	); 
 	
-	static $default_sort = '"Order" ASC, "Created" ASC';
+	private static $default_sort = '"Order" ASC, "Created" ASC';
 	
 	public function getCMSFields() {
 		$polls = Poll::get()->filter('IsActive', 1); 
@@ -61,15 +69,15 @@ class PollChoice extends DataObject {
 		}
 	}
 	
-	public function canCreate($member = null) {
+	public function canCreate($member = null, $context = []) {
 		return Permission::check('MANAGE_POLLS', 'any', $member);
 	}
 	
-	public function canEdit($member = null) {
+	public function canEdit($member = null, $context = []) {
 		return Permission::check('MANAGE_POLLS', 'any', $member);
 	}
 	
-	public function canDelete($member = null) {
+	public function canDelete($member = null, $context = []) {
 		return Permission::check('MANAGE_POLLS', 'any', $member);
 	}
 

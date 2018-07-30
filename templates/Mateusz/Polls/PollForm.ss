@@ -11,7 +11,7 @@
 	<% end_if %>
 
 	<% if $ShouldShowResults %>
-		$Chart
+		$Chart.RAW
 	<% else %>
 		$DefaultForm
 	<% end_if %>

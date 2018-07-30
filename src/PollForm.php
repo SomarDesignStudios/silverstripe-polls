@@ -1,4 +1,12 @@
 <?php
+
+namespace Mateusz\Polls;
+
+use SilverStripe\Forms\Form;
+use SilverStripe\Forms\OptionsetField;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\FormAction;
+
 class PollForm extends Form {
 	
 	private static $show_results_link = false; 
@@ -89,7 +97,7 @@ class PollForm extends Form {
 
 		$this->DefaultForm = $this->renderWith('Form');
 		return $this->customise($this)->renderWith(array(
-				$this->class,
+				self::class,
 				'Form'
 			));
 	}
@@ -154,7 +162,7 @@ class PollForm extends Form {
 
 		$apiURL = 'https://chart.googleapis.com/chart';
 		
-		$choices = $this->poll->Choices('', '"Order" ASC');
+		$choices = $this->poll->Choices()->sort('Order', 'ASC');
 
 		// Fall back to default
 		$labels = array();
@@ -185,22 +193,4 @@ class PollForm extends Form {
 	}
 }
 
-/**
- * Customise the validation message. Also enforce at least one selection in multi-choice poll (checkboxes!)
- */
-class PollForm_Validator extends RequiredFields {
-	function php($data) {
-		$this->form->Fields()->dataFieldByName('PollChoices')->setCustomValidationMessage('Please select at least one option.');
-		return parent::php($data);
-	}
-
-	function javascript() {
-		$js = <<<JS
-		$('PollForm_Poll_PollChoices').requiredErrorMsg = 'Please select at least one option.';
-		if (jQuery('#PollForm_Poll_PollChoices').find('input[checked]').length==0) {
-			validationError(jQuery('#PollForm_Poll_PollChoices')[0], 'Please select at least one option.', 'required');
-		}
-JS;
-		return $js . parent::javascript();
-	}
-}
+?>

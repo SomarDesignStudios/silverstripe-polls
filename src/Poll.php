@@ -1,4 +1,33 @@
 <?php
+
+namespace Mateusz\Polls;
+
+use SilverStripe\Control\Controller;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Security\Permission;
+use SilverStripe\Security\PermissionProvider;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Assets\Image;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\Tabset;
+use SilverStripe\Forms\Tab;
+use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\HTMLEditor\HTMLEditorField;
+use SilverStripe\Forms\OptionsetField;
+use SilverStripe\Forms\DatetimeField;
+use SilverStripe\Forms\ReadonlyField;
+use SilverStripe\Forms\LiteralField;
+use SilverStripe\AssetAdmin\Forms\UploadField;
+use SilverStripe\Forms\GridField\GridField;
+use SilverStripe\Forms\GridField\GridFieldConfig;
+use SilverStripe\Forms\GridField\GridFieldToolbarHeader;
+use SilverStripe\Forms\GridField\GridFieldAddNewButton;
+use SilverStripe\Forms\GridField\GridFieldEditButton;
+use SilverStripe\Forms\GridField\GridFieldDataColumns;
+use SilverStripe\Forms\GridField\GridFieldDeleteAction;
+use SilverStripe\Forms\GridField\GridFieldDetailForm;
+use SilverStripe\Forms\GridField\GridFieldSortableHeader;
+
 /**
  * This represents a poll data object that should have 2 more {@link PollChoice}s
  * 
@@ -7,39 +36,41 @@
 class Poll extends DataObject implements PermissionProvider {
 
 	const COOKIE_PREFIX = 'SSPoll_';
+
+	private static $table_name = 'Poll';
 	
 	private static $db = Array(
 		'Title' => 'Varchar(100)',
 		'Description' => 'HTMLText',
 		'IsActive' => 'Boolean(1)',
 		'MultiChoice' => 'Boolean',
-		'Embargo' => 'SS_Datetime',
-		'Expiry' => 'SS_Datetime'
+		'Embargo' => 'Datetime',
+		'Expiry' => 'Datetime'
 	);
 
 	private static $has_one = array(
-		'Image' => 'Image'
+		'Image' => Image::class
 	);
 	
 	private static $has_many = array(
-		'Choices' => 'PollChoice'
+		'Choices' => PollChoice::class
 	);
 	
-	static $searchable_fields = array(
+	private static $searchable_fields = array(
 		'Title', 
 		'IsActive'
 	);
 	
-	static $summary_fields = array(
+	private static $summary_fields = array(
 		'Title',
 		'IsActive',
 		'Embargo',
 		'Expiry'
 	); 
 	
-	static $default_sort = 'Created DESC';
+	private static $default_sort = 'Created DESC';
 
-	private static $vote_handler_class = 'CookieVoteHandler';
+	private static $vote_handler_class = '\Mateusz\Polls\CookieVoteHandler';
 
 	public $voteHandler;
 
@@ -78,16 +109,6 @@ class Poll extends DataObject implements PermissionProvider {
 				)
 			)
 		);
-
-		$embargo->getDateField()->setConfig('showcalendar', true);
-		$embargo->getTimeField()->setConfig('showdropdown', true);
-		$embargo->getDateField()->setConfig('dateformat', 'dd/MM/YYYY');
-		$embargo->getTimeField()->setConfig('timeformat', 'h:m a');
-
-		$expiry->getDateField()->setConfig('showcalendar', true);
-		$expiry->getTimeField()->setConfig('showdropdown', true);
-		$expiry->getDateField()->setConfig('dateformat', 'dd/MM/YYYY');
-		$expiry->getTimeField()->setConfig('timeformat', 'h:m a');
 
 		// Add the fields that depend on the poll being already saved and having an ID 
 		if($this->ID != 0) {
@@ -141,7 +162,7 @@ class Poll extends DataObject implements PermissionProvider {
 	 * @return Poll|null A Poll if one is visible, null otherwise
 	 */
 	public static function get_current_poll(){
-		$now = SS_Datetime::now();
+		$now = DBDatetime::now();
 		$polls = Poll::get()
 			->filter('IsActive', "1")
 			->where('"Embargo" IS NULL OR "Embargo" < \'' . $now . "'")
@@ -176,21 +197,13 @@ class Poll extends DataObject implements PermissionProvider {
 	}
 
 	/**
-	 * @deprecated
-	 */
-	function isVoted() {
-		Deprecation::notice('0.1', "isVoted has been deprecated, please use hasVoted");
-		return $this->hasVoted();
-	}
-
-	/**
 	 * Check if poll should be visible, taking into account the IsActive and embargo/expiry
 	 */
 	function getVisible() {
 		if (!$this->IsActive) return false;
 		
-		if ($this->Embargo && SS_Datetime::now()->Format('U')<$this->obj('Embargo')->Format('U') || 
-			$this->Expiry && SS_Datetime::now()->Format('U')>$this->obj('Expiry')->Format('U')) {
+		if ($this->Embargo && DBDatetime::now()->Format('U')<$this->obj('Embargo')->Format('U') || 
+			$this->Expiry && DBDatetime::now()->Format('U')>$this->obj('Expiry')->Format('U')) {
 			return false;
 		}
 		
@@ -203,15 +216,15 @@ class Poll extends DataObject implements PermissionProvider {
         );
     }
     
-	public function canCreate($member = null) {
+	public function canCreate($member = null, $context = []) {
 		return Permission::check('MANAGE_POLLS', 'any', $member);
 	}
 	
-	public function canEdit($member = null) {
+	public function canEdit($member = null, $context = []) {
 		return Permission::check('MANAGE_POLLS', 'any', $member);
 	}
 	
-	public function canDelete($member = null) {
+	public function canDelete($member = null, $context = []) {
 		return Permission::check('MANAGE_POLLS', 'any', $member);
 	}
 
